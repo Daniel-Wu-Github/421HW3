@@ -27,15 +27,33 @@ BATCH_SIZE = 32
 def evaluation(model, best_model_state, best_val_acc):
     ### YOUR CODE HERE
     # step 1: Load test data
+    raw_test_data, test_labels = load_data(os.path.join(data_dir, test_filename))
 
     # step 2: Preprocess raw data to extract features
+    test_X = prepare_X(raw_test_data)
+    test_y, _ = prepare_y(test_labels)
 
     # step 3: Convert numpy arrays to PyTorch tensors
+    test_X = torch.tensor(test_X, dtype=torch.float32)
+    test_y = torch.tensor(test_y, dtype=torch.long)
 
     # step 4: Load the best validation model
+    model.load_state_dict(best_model_state)
 
     # step 5: Evaluate classification accuracy on the test set
+    model.eval()  # Set the model to evaluation mode
+    with torch.no_grad():  # Disable gradient calculation for efficiency
+        # Get the model's raw score predictions
+        outputs = model(test_X)
+        # Get the class with the highest score for each sample
+        predictions = torch.argmax(outputs, dim=1)
+        # Calculate the accuracy
+        correct_predictions = (predictions == test_y).sum().item()
+        total_samples = len(test_y)
+        test_acc = correct_predictions / total_samples
 
+    print(f"Best Validation Accuracy: {best_val_acc:.4f}")
+    print(f"Test Accuracy: {test_acc:.4f}")
     ### END YOUR CODE
 
 ##### Load Data
